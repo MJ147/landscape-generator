@@ -1,8 +1,9 @@
 import * as THREE from 'three';
+import { BufferGeometry, BufferGeometryUtils, Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
 
 const gridSize = 10;
-const gridSegments = 3;
 const boardSize = 6;
 
 const scene = new THREE.Scene();
@@ -17,30 +18,34 @@ renderer.setClearColor(0x87ceeb, 1);
 document.body.appendChild(renderer.domElement);
 
 new OrbitControls(camera, renderer.domElement);
-const planeGeometry = new THREE.PlaneGeometry();
 const material = new THREE.MeshNormalMaterial();
 
 for (let i = 0; i < boardSize; i++) {
 	for (let j = 0; j < boardSize; j++) {
-		const randomHeight = Math.random() * 10;
-		const boxGeometry = new THREE.BoxGeometry(gridSize, randomHeight, gridSize, gridSegments, gridSegments);
-		const bufferGeometry = new THREE.BufferGeometry();
+		// set coords
+		const x = gridSize * (i - 0.5 * (boardSize - 1));
+		const y = Math.random() * 10;
+		const z = gridSize * (j - 0.5 * (boardSize - 1));
 
-		const cube = new THREE.Mesh(boxGeometry, material);
-		boxGeometry.computeBoundingBox();
-		cube.position.y = ((cube.geometry.boundingBox as THREE.Box3).max.y - (cube.geometry.boundingBox as THREE.Box3).min.y) / 2;
+		const vertices = [];
 
-		bufferGeometry.merge(boxGeometry);
+		vertices.push(new Vector3(x, y, z));
+		vertices.push(new Vector3(x, y, z + 10));
+		vertices.push(new Vector3(x + 10, y, z));
 
-		// center board
-		cube.translateX(gridSize * (i - 0.5 * (boardSize - 1)));
-		cube.translateZ(gridSize * (j - 0.5 * (boardSize - 1)));
+		vertices.push(new Vector3(x + 10, y, z + 10));
+		vertices.push(new Vector3(x + 10, y, z));
+		vertices.push(new Vector3(x, y, z + 10));
 
-		scene.add(cube);
+		const terrainGeometry = new BufferGeometry().setFromPoints(vertices);
+
+		const terrain = new THREE.Mesh(terrainGeometry, material);
+		scene.add(terrain);
 	}
 }
 
 window.addEventListener('resize', onWindowResize, false);
+
 function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
