@@ -18,7 +18,9 @@ renderer.setClearColor(0x87ceeb, 1);
 document.body.appendChild(renderer.domElement);
 
 new OrbitControls(camera, renderer.domElement);
-const material = new THREE.MeshNormalMaterial();
+const material = new THREE.MeshNormalMaterial({
+	vertexColors: true,
+});
 
 for (let i = 0; i < boardSize; i++) {
 	for (let j = 0; j < boardSize; j++) {
@@ -28,6 +30,9 @@ for (let i = 0; i < boardSize; i++) {
 		const z = gridSize * (j - 0.5 * (boardSize - 1));
 
 		const vertices = [];
+		const normals = [];
+		const colors = [];
+		const uv = [];
 
 		vertices.push(new Vector3(x, y, z));
 		vertices.push(new Vector3(x, y, z + 10));
@@ -37,7 +42,16 @@ for (let i = 0; i < boardSize; i++) {
 		vertices.push(new Vector3(x + 10, y, z));
 		vertices.push(new Vector3(x, y, z + 10));
 
-		const terrainGeometry = new BufferGeometry().setFromPoints(vertices);
+		normals.push(0, 1, 0);
+		normals.push(0, 1, 0);
+		normals.push(0, 1, 0);
+		normals.push(0, 1, 0);
+		normals.push(0, 1, 0);
+		normals.push(0, 1, 0);
+
+		const terrainGeometry = new THREE.BufferGeometry();
+		terrainGeometry.setFromPoints(vertices);
+		terrainGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
 
 		const terrain = new THREE.Mesh(terrainGeometry, material);
 		scene.add(terrain);
