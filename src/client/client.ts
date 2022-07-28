@@ -1,10 +1,8 @@
 import * as THREE from 'three';
-import { BufferGeometry, BufferGeometryUtils, Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
 
 const gridSize = 10;
-const boardSize = 6;
+const boardSize = 4;
 
 const scene = new THREE.Scene();
 
@@ -23,24 +21,23 @@ const material = new THREE.MeshNormalMaterial({
 });
 
 for (let i = 0; i < boardSize; i++) {
+	let lastY = 0;
+
 	for (let j = 0; j < boardSize; j++) {
 		// set coords
-		const x = gridSize * (i - 0.5 * (boardSize - 1));
+		const x = gridSize * (i - 0.5 * boardSize);
 		const y = Math.random() * 10;
-		const z = gridSize * (j - 0.5 * (boardSize - 1));
+		const z = gridSize * (j - 0.5 * boardSize);
 
 		const vertices = [];
 		const normals = [];
-		const colors = [];
-		const uv = [];
 
-		vertices.push(new Vector3(x, y, z));
-		vertices.push(new Vector3(x, y, z + 10));
-		vertices.push(new Vector3(x + 10, y, z));
-
-		vertices.push(new Vector3(x + 10, y, z + 10));
-		vertices.push(new Vector3(x + 10, y, z));
-		vertices.push(new Vector3(x, y, z + 10));
+		vertices.push(x, j === 0 ? y : lastY, z);
+		vertices.push(x, y, z + 10);
+		vertices.push(x + 10, j === 0 ? y : lastY, z);
+		vertices.push(x + 10, y, z + 10);
+		vertices.push(x + 10, j === 0 ? y : lastY, z);
+		vertices.push(x, y, z + 10);
 
 		normals.push(0, 1, 0);
 		normals.push(0, 1, 0);
@@ -50,11 +47,13 @@ for (let i = 0; i < boardSize; i++) {
 		normals.push(0, 1, 0);
 
 		const terrainGeometry = new THREE.BufferGeometry();
-		terrainGeometry.setFromPoints(vertices);
+		terrainGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 		terrainGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
 
 		const terrain = new THREE.Mesh(terrainGeometry, material);
 		scene.add(terrain);
+
+		lastY = y;
 	}
 }
 
@@ -69,7 +68,7 @@ function onWindowResize() {
 
 function animate() {
 	requestAnimationFrame(animate);
-	scene.rotation.y += 0.008;
+	// scene.rotation.y += 0.008;
 
 	render();
 }
