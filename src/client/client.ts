@@ -20,10 +20,15 @@ const material = new THREE.MeshNormalMaterial({
 	vertexColors: true,
 });
 
-for (let i = 0; i < boardSize; i++) {
-	let lastY = 0;
+let heights: number[][] = [[], [], [], []];
 
-	for (let j = 0; j < boardSize; j++) {
+for (let i = 0; i < boardSize; i++) {
+	for (let j = 0; j <= boardSize; j++) {
+		if (j === 0) {
+			heights[i][j] = Math.random() * 10;
+			continue;
+		}
+
 		// set coords
 		const x = gridSize * (i - 0.5 * boardSize);
 		const y = Math.random() * 10;
@@ -32,12 +37,21 @@ for (let i = 0; i < boardSize; i++) {
 		const vertices = [];
 		const normals = [];
 
-		vertices.push(x, j === 0 ? y : lastY, z);
-		vertices.push(x, y, z + 10);
-		vertices.push(x + 10, j === 0 ? y : lastY, z);
-		vertices.push(x + 10, y, z + 10);
-		vertices.push(x + 10, j === 0 ? y : lastY, z);
-		vertices.push(x, y, z + 10);
+		if (i === 0) {
+			vertices.push(x, heights[i][j - 1], z); // top left
+			vertices.push(x, y, z + 10); // bottom left
+			vertices.push(x + 10, heights[i][j - 1], z); // top right
+			vertices.push(x + 10, y, z + 10); // bottom right
+			vertices.push(x + 10, heights[i][j - 1], z); // top right
+			vertices.push(x, y, z + 10); // bottom left
+		} else {
+			vertices.push(x, heights[i - 1][j - 1], z); // top left
+			vertices.push(x, heights[i - 1][j], z + 10); // bottom left
+			vertices.push(x + 10, heights[i - 1][j - 1], z); // top right
+			vertices.push(x + 10, y, z + 10); // bottom right
+			vertices.push(x + 10, heights[i - 1][j - 1], z); // top right
+			vertices.push(x, heights[i - 1][j], z + 10); // bottom left
+		}
 
 		normals.push(0, 1, 0);
 		normals.push(0, 1, 0);
@@ -53,7 +67,7 @@ for (let i = 0; i < boardSize; i++) {
 		const terrain = new THREE.Mesh(terrainGeometry, material);
 		scene.add(terrain);
 
-		lastY = y;
+		heights[i][j] = y;
 	}
 }
 
