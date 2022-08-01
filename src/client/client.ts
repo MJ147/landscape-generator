@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 const gridSize = 10;
-const boardSize = 4;
+const boardSize = 6;
 
 const scene = new THREE.Scene();
 
@@ -16,11 +16,14 @@ renderer.setClearColor(0x87ceeb, 1);
 document.body.appendChild(renderer.domElement);
 
 new OrbitControls(camera, renderer.domElement);
-const material = new THREE.MeshNormalMaterial({
+const material = new THREE.MeshPhongMaterial({
 	vertexColors: true,
 });
 
-let heights: number[][] = [[], [], [], []];
+const light = new THREE.HemisphereLight();
+scene.add(light);
+
+let heights: number[][] = [[], [], [], [], [], []];
 
 for (let i = 0; i < boardSize; i++) {
 	for (let j = 0; j <= boardSize; j++) {
@@ -36,6 +39,7 @@ for (let i = 0; i < boardSize; i++) {
 
 		const vertices = [];
 		const normals = [];
+		const colors = [];
 
 		if (i === 0) {
 			vertices.push(x, heights[i][j - 1], z); // top left
@@ -47,9 +51,9 @@ for (let i = 0; i < boardSize; i++) {
 		} else {
 			vertices.push(x, heights[i - 1][j - 1], z); // top left
 			vertices.push(x, heights[i - 1][j], z + 10); // bottom left
-			vertices.push(x + 10, heights[i - 1][j - 1], z); // top right
+			vertices.push(x + 10, heights[i][j - 1], z); // top right
 			vertices.push(x + 10, y, z + 10); // bottom right
-			vertices.push(x + 10, heights[i - 1][j - 1], z); // top right
+			vertices.push(x + 10, heights[i][j - 1], z); // top right
 			vertices.push(x, heights[i - 1][j], z + 10); // bottom left
 		}
 
@@ -60,9 +64,17 @@ for (let i = 0; i < boardSize; i++) {
 		normals.push(0, 1, 0);
 		normals.push(0, 1, 0);
 
+		colors.push(0, 2, 0);
+		colors.push(0, 2, 0);
+		colors.push(0, 2, 0);
+		colors.push(0, 2, 0);
+		colors.push(0, 2, 0);
+		colors.push(0, 2, 0);
+
 		const terrainGeometry = new THREE.BufferGeometry();
 		terrainGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 		terrainGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+		terrainGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
 		const terrain = new THREE.Mesh(terrainGeometry, material);
 		scene.add(terrain);
@@ -82,7 +94,7 @@ function onWindowResize() {
 
 function animate() {
 	requestAnimationFrame(animate);
-	// scene.rotation.y += 0.008;
+	scene.rotation.y += 0.008;
 
 	render();
 }
