@@ -16,30 +16,22 @@ renderer.setClearColor(0x87ceeb, 1);
 document.body.appendChild(renderer.domElement);
 
 new OrbitControls(camera, renderer.domElement);
-const material = new THREE.MeshPhongMaterial({
+const material = new THREE.MeshNormalMaterial({
 	vertexColors: true,
 });
 
-const light = new THREE.HemisphereLight();
-scene.add(light);
-
-let heights: number[][] = [[], [], [], [], [], []];
+let heights: number[][] = [];
 
 for (let i = 0; i < boardSize; i++) {
-	for (let j = 0; j <= boardSize; j++) {
-		if (j === 0) {
-			heights[i][j] = Math.random() * 10;
-			continue;
-		}
+	heights[i] = [Math.random() * 10];
 
+	for (let j = 1; j <= boardSize; j++) {
 		// set coords
 		const x = gridSize * (i - 0.5 * boardSize);
 		const y = Math.random() * 10;
-		const z = gridSize * (j - 0.5 * boardSize);
+		const z = gridSize * (j - 0.5 * boardSize) - 10;
 
 		const vertices = [];
-		const normals = [];
-		const colors = [];
 
 		if (i === 0) {
 			vertices.push(x, heights[i][j - 1], z); // top left
@@ -57,24 +49,9 @@ for (let i = 0; i < boardSize; i++) {
 			vertices.push(x, heights[i - 1][j], z + 10); // bottom left
 		}
 
-		normals.push(0, 1, 0);
-		normals.push(0, 1, 0);
-		normals.push(0, 1, 0);
-		normals.push(0, 1, 0);
-		normals.push(0, 1, 0);
-		normals.push(0, 1, 0);
-
-		colors.push(0, 2, 0);
-		colors.push(0, 2, 0);
-		colors.push(0, 2, 0);
-		colors.push(0, 2, 0);
-		colors.push(0, 2, 0);
-		colors.push(0, 2, 0);
-
 		const terrainGeometry = new THREE.BufferGeometry();
 		terrainGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-		terrainGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-		terrainGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+		terrainGeometry.computeVertexNormals();
 
 		const terrain = new THREE.Mesh(terrainGeometry, material);
 		scene.add(terrain);
