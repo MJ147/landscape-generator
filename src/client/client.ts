@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-const gridSize = 10;
-const boardSize = 6;
+const gridSize = 1;
+const boardSize = 50;
+const heightFactor = 3;
 
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 50;
-camera.position.y = 40;
+camera.position.z = 25;
+camera.position.y = 5;
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -22,32 +23,29 @@ const material = new THREE.MeshNormalMaterial({
 
 let heights: number[][] = [];
 
-for (let i = 0; i < boardSize; i++) {
-	heights[i] = [Math.random() * 10];
+for (let i = 0; i <= boardSize; i++) {
+	heights[i] = [];
+	for (let j = 0; j <= boardSize; j++) {
+		if (i === 0 || j === 0) {
+			heights[i][j] = Math.random() * gridSize * heightFactor;
 
-	for (let j = 1; j <= boardSize; j++) {
-		// set coords
-		const x = gridSize * (i - 0.5 * boardSize);
-		const y = Math.random() * 10;
-		const z = gridSize * (j - 0.5 * boardSize) - 10;
-
-		const vertices = [];
-
-		if (i === 0) {
-			vertices.push(x, heights[i][j - 1], z); // top left
-			vertices.push(x, y, z + 10); // bottom left
-			vertices.push(x + 10, heights[i][j - 1], z); // top right
-			vertices.push(x + 10, y, z + 10); // bottom right
-			vertices.push(x + 10, heights[i][j - 1], z); // top right
-			vertices.push(x, y, z + 10); // bottom left
-		} else {
-			vertices.push(x, heights[i - 1][j - 1], z); // top left
-			vertices.push(x, heights[i - 1][j], z + 10); // bottom left
-			vertices.push(x + 10, heights[i][j - 1], z); // top right
-			vertices.push(x + 10, y, z + 10); // bottom right
-			vertices.push(x + 10, heights[i][j - 1], z); // top right
-			vertices.push(x, heights[i - 1][j], z + 10); // bottom left
+			continue;
 		}
+
+		// center board
+		const x = gridSize * (i - 0.5 * boardSize - 1);
+		const y = Math.random() * gridSize * heightFactor;
+		const z = gridSize * (j - 0.5 * boardSize - 1);
+
+		const vertices: number[] = [];
+		console.log(heights.map((v) => v.map((d) => Math.round(d)).toString()));
+
+		vertices.push(x, heights[i - 1][j - 1], z); // top left
+		vertices.push(x, heights[i - 1][j], z + gridSize); // bottom left
+		vertices.push(x + gridSize, heights[i][j - 1], z); // top right
+		vertices.push(x + gridSize, y, z + gridSize); // bottom right
+		vertices.push(x + gridSize, heights[i][j - 1], z); // top right
+		vertices.push(x, heights[i - 1][j], z + gridSize); // bottom left
 
 		const terrainGeometry = new THREE.BufferGeometry();
 		terrainGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
@@ -71,7 +69,7 @@ function onWindowResize() {
 
 function animate() {
 	requestAnimationFrame(animate);
-	scene.rotation.y += 0.008;
+	scene.rotation.y += 0.002;
 
 	render();
 }
