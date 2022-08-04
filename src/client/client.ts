@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 const boardSettings = {
 	fieldSize: 1,
-	boardSize: 30,
+	boardSize: 50,
 	heightFactor: 3,
 };
 
