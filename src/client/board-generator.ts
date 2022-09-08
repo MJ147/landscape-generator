@@ -1,0 +1,63 @@
+import { seededRandom } from 'three/src/math/MathUtils';
+
+export interface Board {
+	size: number;
+	verticesOffset: number;
+	vertices: Point[][];
+}
+
+// x, y, z
+export type Point = [number, number, number];
+
+export function generateSeed(): number {
+	const seed = Math.floor(seededRandom() * 10 ** 10);
+
+	return seed;
+}
+
+export function getVertexYFromSeed(numberOfVertex: number, seed: number, max: number): number {
+	const seedArray = Array.from(seed.toString(), (n) => Number(n));
+	console.log(seedArray);
+
+	const first = seedArray[Math.floor(numberOfVertex / 1000)];
+	const second = seedArray[Math.floor((numberOfVertex / 100) % 10)];
+	const third = seedArray[Math.floor((numberOfVertex / 10) % 10)];
+	const four = seedArray[Math.floor(numberOfVertex % 10)];
+	console.log(first, second, third, four, max, (first + second + third + four) % max);
+
+	return (first + second + third + four) % (max + 1);
+}
+
+export function generateBoardModel(
+	seed: number,
+	boardSize: number,
+	maxHeight: number,
+	minHeight: number = 0,
+	verticesOffset: number = 1,
+): Board {
+	let vertices: Point[][] = [];
+
+	for (let i = 0; i <= boardSize; i++) {
+		vertices[i] = [];
+
+		for (let j = 0; j <= boardSize; j++) {
+			const vertexNumber = i * boardSize + j;
+
+			const x = verticesOffset * (i - 0.5 * boardSize);
+			const y = getVertexYFromSeed(vertexNumber, seed, maxHeight);
+			const z = verticesOffset * (j - 0.5 * boardSize);
+
+			vertices[i][j] = [x, y, z];
+		}
+	}
+
+	console.log(vertices.map((r) => `[${r[0][0]}, ${r[0][2]}] (${r[0][1]}])`).toString());
+	console.log(vertices.map((r) => `[${r[1][0]}, ${r[1][2]}] (${r[1][1]}])`).toString());
+	console.log(vertices.map((r) => `[${r[2][0]}, ${r[2][2]}] (${r[2][1]}])`).toString());
+
+	return {
+		size: boardSize,
+		verticesOffset,
+		vertices,
+	};
+}
