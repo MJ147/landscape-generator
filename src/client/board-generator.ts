@@ -15,11 +15,16 @@ export interface Board {
 // x, y, z
 export type Point = [number, number, number];
 
-export function generateSeed(seed?: number): Germination {
-	seed = seed ?? Math.floor(Math.random() * 10 ** 10);
-	const sprout = Math.floor(seededRandom(seed) * 10 ** 10);
+export function generateRandomSeed(): number {
+	const seed = Math.floor(Math.random() * 10 ** 10);
 
-	return { seed, sprout };
+	return seed;
+}
+
+export function encryptSeed(seed: number): number {
+	const cryptedSeed = Math.floor(seededRandom(seed) * 10 ** 10);
+
+	return cryptedSeed;
 }
 
 export function getVertexYFromSeed(numberOfVertex: number, seed: number, max: number): number {

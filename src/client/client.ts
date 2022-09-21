@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { generateSeed, generateBoardModel, Point, Germination } from './board-generator';
+import { encryptSeed, generateBoardModel, generateRandomSeed, Point } from './board-generator';
 import { GUI } from 'dat.gui';
 
 export interface Grid {
@@ -17,7 +17,7 @@ export interface BoardSettings {
 	verticesOffset: number;
 }
 
-const germination: Germination = generateSeed();
+const seedWrapper = { seed: generateRandomSeed() };
 
 const boardSettings: BoardSettings = {
 	boardSize: 50,
@@ -25,8 +25,6 @@ const boardSettings: BoardSettings = {
 	minHeight: 0,
 	verticesOffset: 5,
 };
-
-let lastMaxHeight = boardSettings.maxHeight;
 
 const cameraSettings = {
 	rotateSpeed: 2,
@@ -49,8 +47,9 @@ const material = new THREE.MeshNormalMaterial({
 
 function generateBoard(): void {
 	scene.clear();
+	const cryptedSeed: number = encryptSeed(seedWrapper.seed);
 
-	const boardModel = generateBoardModel(germination.sprout, boardSettings);
+	const boardModel = generateBoardModel(cryptedSeed, boardSettings);
 
 	boardModel.vertices.forEach((verticesLine, i, verticesRow) => {
 		verticesLine.forEach((vertex, j) => {
@@ -98,11 +97,6 @@ function animate(): void {
 	requestAnimationFrame(animate);
 	scene.rotation.y += cameraSettings.rotateSpeed / 1000;
 
-	if (boardSettings.maxHeight !== lastMaxHeight) {
-		lastMaxHeight = boardSettings.maxHeight;
-		generateBoard();
-	}
-
 	render();
 }
 
@@ -120,7 +114,10 @@ function createGui(): void {
 	cameraFolder.open();
 
 	const boardFolder = gui.addFolder('Board');
-	boardFolder.add(boardSettings, 'maxHeight', 0, 5, 1);
-	boardFolder.add(germination, 'seed');
+	boardFolder.add(boardSettings, 'maxHeight', 0, 10, 1);
+	boardFolder.add(seedWrapper, 'seed');
 	boardFolder.open();
+
+	const generateBoardWrapper = { generateBoard };
+	boardFolder.add(generateBoardWrapper, 'generateBoard');
 }
