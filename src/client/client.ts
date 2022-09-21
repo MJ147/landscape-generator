@@ -1,24 +1,40 @@
 import { GUI } from 'dat.gui';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { encryptSeed, generateBoardModel, generateRandomSeed, Point } from './board-generator';
+import { GUI } from 'dat.gui';
 
-const boardSettings = {
-	fieldSize: 1,
+export interface Grid {
+	topLeft: Point;
+	topRight: Point;
+	bottomRight: Point;
+	bottomLeft: Point;
+}
+
+export interface BoardSettings {
+	boardSize: number;
+	maxHeight: number;
+	minHeight: number;
+	verticesOffset: number;
+}
+
+const seedWrapper = { seed: generateRandomSeed() };
+
+const boardSettings: BoardSettings = {
 	boardSize: 50,
-	heightFactor: 3,
+	maxHeight: 3,
+	minHeight: 0,
+	verticesOffset: 5,
 };
 
-let lastHeightFactor = boardSettings.heightFactor;
-
-const cameraAutoRotate = {
+const cameraSettings = {
 	rotateSpeed: 2,
 };
 
 const scene = new THREE.Scene();
-
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 25;
-camera.position.y = 5;
+camera.position.z = 30;
+camera.position.y = 20;
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -30,77 +46,33 @@ const material = new THREE.MeshNormalMaterial({
 	vertexColors: true,
 });
 
-createLandscape();
-
-window.addEventListener('resize', onWindowResize, false);
-
-function onWindowResize() {
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-	renderer.setSize(window.innerWidth, window.innerHeight);
-	render();
-}
-
-function animate() {
-	requestAnimationFrame(animate);
-	scene.rotation.y += cameraAutoRotate.rotateSpeed / 1000;
-
-	if (boardSettings.heightFactor !== lastHeightFactor) {
-		console.log(1);
-
-		lastHeightFactor = boardSettings.heightFactor;
-		createLandscape();
-	}
-
-	render();
-}
-
-function render() {
-	renderer.render(scene, camera);
-}
-
-createGui();
-animate();
-
-function createGui() {
-	const gui = new GUI();
-	const cameraFolder = gui.addFolder('Camera');
-	cameraFolder.add(cameraAutoRotate, 'rotateSpeed', 0, 10, 1);
-	cameraFolder.open();
-
-	const boardFolder = gui.addFolder('Board');
-	boardFolder.add(boardSettings, 'heightFactor', 0, 10, 1);
-	boardFolder.open();
-}
-
-function createLandscape() {
+function generateBoard(): void {
 	scene.clear();
+	const cryptedSeed: number = encryptSeed(seedWrapper.seed);
 
-	let heights: number[][] = [];
+	const boardModel = generateBoardModel(cryptedSeed, boardSettings);
 
-	for (let i = 0; i <= boardSettings.boardSize; i++) {
-		heights[i] = [];
-
-		for (let j = 0; j <= boardSettings.boardSize; j++) {
+	boardModel.vertices.forEach((verticesLine, i, verticesRow) => {
+		verticesLine.forEach((vertex, j) => {
 			if (i === 0 || j === 0) {
-				heights[i][j] = Math.random() * boardSettings.fieldSize * boardSettings.heightFactor;
-
-				continue;
+				return;
 			}
 
-			// center board
-			const x = boardSettings.fieldSize * (i - 0.5 * boardSettings.boardSize - 1);
-			const y = Math.random() * boardSettings.fieldSize * boardSettings.heightFactor;
-			const z = boardSettings.fieldSize * (j - 0.5 * boardSettings.boardSize - 1);
+			const grid: Grid = {
+				topLeft: verticesRow[i - 1][j - 1],
+				topRight: verticesLine[j - 1],
+				bottomRight: vertex,
+				bottomLeft: verticesRow[i - 1][j],
+			};
 
 			const vertices: number[] = [];
 
-			vertices.push(x, heights[i - 1][j - 1], z); // top left
-			vertices.push(x, heights[i - 1][j], z + boardSettings.fieldSize); // bottom left
-			vertices.push(x + boardSettings.fieldSize, heights[i][j - 1], z); // top right
-			vertices.push(x + boardSettings.fieldSize, y, z + boardSettings.fieldSize); // bottom right
-			vertices.push(x + boardSettings.fieldSize, heights[i][j - 1], z); // top right
-			vertices.push(x, heights[i - 1][j], z + boardSettings.fieldSize); // bottom left
+			vertices.push(...grid.topLeft);
+			vertices.push(...grid.bottomLeft);
+			vertices.push(...grid.topRight);
+			vertices.push(...grid.bottomRight);
+			vertices.push(...grid.topRight);
+			vertices.push(...grid.bottomLeft);
 
 			const terrainGeometry = new THREE.BufferGeometry();
 			terrainGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
@@ -108,8 +80,45 @@ function createLandscape() {
 
 			const terrain = new THREE.Mesh(terrainGeometry, material);
 			scene.add(terrain);
+		});
+	});
+}
 
-			heights[i][j] = y;
-		}
-	}
+window.addEventListener('resize', onWindowResize, false);
+generateBoard();
+
+function onWindowResize(): void {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	render();
+}
+
+function animate(): void {
+	requestAnimationFrame(animate);
+	scene.rotation.y += cameraSettings.rotateSpeed / 1000;
+
+	render();
+}
+
+function render(): void {
+	renderer.render(scene, camera);
+}
+
+createGui();
+animate();
+
+function createGui(): void {
+	const gui = new GUI();
+	const cameraFolder = gui.addFolder('Camera');
+	cameraFolder.add(cameraSettings, 'rotateSpeed', 0, 10, 1);
+	cameraFolder.open();
+
+	const boardFolder = gui.addFolder('Board');
+	boardFolder.add(boardSettings, 'maxHeight', 0, 10, 1);
+	boardFolder.add(seedWrapper, 'seed');
+	boardFolder.open();
+
+	const generateBoardWrapper = { generateBoard };
+	boardFolder.add(generateBoardWrapper, 'generateBoard');
 }
