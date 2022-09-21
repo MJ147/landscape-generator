@@ -1,7 +1,7 @@
+import { GUI } from 'dat.gui';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { encryptSeed, generateBoardModel, generateRandomSeed, Point } from './board-generator';
-import { GUI } from 'dat.gui';
 
 export interface Grid {
 	topLeft: Point;
