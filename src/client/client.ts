@@ -15,15 +15,17 @@ export interface BoardSettings {
 	maxHeight: number;
 	minHeight: number;
 	verticesOffset: number;
+	maxHeightOffset: number;
 }
 
 const seedWrapper = { seed: generateRandomSeed() };
 
 const boardSettings: BoardSettings = {
 	boardSize: 50,
-	maxHeight: 3,
+	maxHeight: 5,
 	minHeight: 0,
 	verticesOffset: 5,
+	maxHeightOffset: 1,
 };
 
 const cameraSettings = {

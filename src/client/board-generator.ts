@@ -27,7 +27,7 @@ export function encryptSeed(seed: number): number {
 	return cryptedSeed;
 }
 
-export function getVertexYFromSeed(numberOfVertex: number, seed: number, max: number): number {
+export function getVertexYFromSeed(numberOfVertex: number, seed: number, max: number, min: number): number {
 	const seedArray = Array.from(seed.toString(), (n) => Number(n));
 
 	const first = seedArray[Math.floor(numberOfVertex / 1000)];
@@ -35,10 +35,17 @@ export function getVertexYFromSeed(numberOfVertex: number, seed: number, max: nu
 	const third = seedArray[Math.floor((numberOfVertex / 10) % 10)];
 	const four = seedArray[Math.floor(numberOfVertex % 10)];
 
-	return (first + second + third + four) % (max + 1);
+	// console.log(Math.floor(numberOfVertex % 10));
+
+	console.log(first, second, third, four, ((first + second + third + four) % (max - min + 1)) + min);
+
+	return ((first + second + third + four) % (max - min + 1)) + min;
 }
 
-export function generateBoardModel(seed: number, { boardSize, verticesOffset, maxHeight }: BoardSettings): Board {
+export function generateBoardModel(
+	seed: number,
+	{ boardSize, verticesOffset, maxHeight, minHeight, maxHeightOffset }: BoardSettings,
+): Board {
 	let vertices: Point[][] = [];
 
 	for (let i = 0; i <= boardSize; i++) {
@@ -48,7 +55,7 @@ export function generateBoardModel(seed: number, { boardSize, verticesOffset, ma
 			const vertexNumber = i * boardSize + j;
 
 			const x = verticesOffset * (i - 0.5 * boardSize);
-			const y = getVertexYFromSeed(vertexNumber, seed, maxHeight);
+			const y = getVertexYFromSeed(vertexNumber, seed, maxHeight, 3);
 			const z = verticesOffset * (j - 0.5 * boardSize);
 
 			vertices[i][j] = [x, y, z];
