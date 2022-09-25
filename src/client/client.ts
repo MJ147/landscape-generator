@@ -22,7 +22,7 @@ const seedWrapper = { seed: generateRandomSeed() };
 
 const boardSettings: BoardSettings = {
 	boardSize: 50,
-	maxHeight: 5,
+	maxHeight: 10,
 	minHeight: 0,
 	verticesOffset: 5,
 	maxHeightOffset: 1,
@@ -49,7 +49,7 @@ const material = new THREE.MeshNormalMaterial({
 
 function generateBoard(): void {
 	scene.clear();
-	const cryptedSeed: number = encryptSeed(seedWrapper.seed);
+	const cryptedSeed: string = encryptSeed(seedWrapper.seed);
 
 	const boardModel = generateBoardModel(cryptedSeed, boardSettings);
 
