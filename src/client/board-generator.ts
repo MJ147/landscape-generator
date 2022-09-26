@@ -37,9 +37,14 @@ export function getVertexYFromSeed(numberOfVertex: number, seed: string, max: nu
 	return ((first + second + third + four) % (max - min + 1)) + min;
 }
 
+// gives a random 0 or 1 with a given probability of 1
+function randomByProbability(probability: number): number {
+	return probability >= Math.random() ? 1 : 0;
+}
+
 export function generateBoardModel(
 	seed: string,
-	{ boardSize, verticesOffset, maxHeight, minHeight, maxHeightOffset }: BoardSettings,
+	{ boardSize, verticesOffset, maxHeight, minHeight, maxHeightOffset, terrainVariability }: BoardSettings,
 ): Board {
 	let vertices: Point[][] = [];
 
@@ -51,17 +56,30 @@ export function generateBoardModel(
 			let minHeightLocal = minHeight;
 
 			if (maxHeightOffset != null && (j !== 0 || i !== 0)) {
-				const lastXAdjacentHeight = vertices[i - 1]?.[j]?.[1] ?? vertices[i]?.[j - 1]?.[1];
-				const lastYAdjacentHeight = vertices[i]?.[j - 1]?.[1] ?? vertices[i - 1]?.[j]?.[1];
+				const lastPointHeightX = vertices[i - 1]?.[j]?.[1] ?? vertices[i]?.[j - 1]?.[1];
+				const lastPointHeightY = vertices[i]?.[j - 1]?.[1] ?? vertices[i - 1]?.[j]?.[1];
+				const lastPointsAvgHeight = (lastPointHeightX + lastPointHeightY) / 2;
 
-				const adjacentAvgHeight = (lastXAdjacentHeight + lastYAdjacentHeight) / 2;
+				maxHeightLocal = lastPointsAvgHeight + maxHeightOffset;
+				minHeightLocal = lastPointsAvgHeight - maxHeightOffset;
 
-				console.log(Math.floor(adjacentAvgHeight + maxHeightOffset));
+				// wavy terrain
+				if (i > 1 || j > 1) {
+					const beforeLastPointHeightX = vertices[i - 2]?.[j]?.[1] ?? vertices[i]?.[j - 2]?.[1];
+					const beforeLastPointHeightY = vertices[i]?.[j - 2]?.[1] ?? vertices[i - 2]?.[j]?.[1];
+					const beforeLastPointsAvgHeight = (beforeLastPointHeightX + beforeLastPointHeightY) / 2;
 
-				console.log(Math.ceil(adjacentAvgHeight - maxHeightOffset));
+					if (lastPointsAvgHeight > beforeLastPointsAvgHeight) {
+						minHeightLocal = lastPointsAvgHeight;
+					}
 
-				maxHeightLocal = Math.min(maxHeight, Math.floor(adjacentAvgHeight + maxHeightOffset));
-				minHeightLocal = Math.max(minHeight, Math.ceil(adjacentAvgHeight - maxHeightOffset));
+					if (lastPointsAvgHeight < beforeLastPointsAvgHeight) {
+						maxHeightLocal = lastPointsAvgHeight;
+					}
+				}
+
+				maxHeightLocal = Math.min(maxHeight, Math.floor(maxHeightLocal));
+				minHeightLocal = Math.max(minHeight, Math.ceil(minHeightLocal));
 			}
 
 			const vertexNumber = i * boardSize + j;
