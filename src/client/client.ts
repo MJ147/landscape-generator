@@ -16,18 +16,20 @@ export interface BoardSettings {
 	minHeight: number;
 	verticesOffset: number;
 	maxHeightOffset: number;
-	terrainVariability: number; // 0-1
+	terrainVariety: number; // 0-1
+	isWavy: boolean;
 }
 
 const seedWrapper = { seed: generateRandomSeed() };
 
 const boardSettings: BoardSettings = {
 	boardSize: 50,
-	maxHeight: 100,
+	maxHeight: 50,
 	minHeight: 0,
 	verticesOffset: 5,
 	maxHeightOffset: 1,
-	terrainVariability: 1,
+	terrainVariety: 0,
+	isWavy: true,
 };
 
 const cameraSettings = {
@@ -36,8 +38,8 @@ const cameraSettings = {
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 100;
-camera.position.y = 60;
+camera.position.z = 180;
+camera.position.y = 150;
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -119,6 +121,11 @@ function createGui(): void {
 
 	const boardFolder = gui.addFolder('Board');
 	boardFolder.add(boardSettings, 'maxHeight', 0, 10, 1);
+
+	const wavesFolder = boardFolder.addFolder('Waves');
+	wavesFolder.add(boardSettings, 'isWavy', true);
+	wavesFolder.add(boardSettings, 'terrainVariety', 0, 1, 0.1);
+
 	boardFolder.add(seedWrapper, 'seed');
 	boardFolder.open();
 
